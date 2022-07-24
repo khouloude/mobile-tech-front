@@ -1,31 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Chart } from "react-charts";
 import { v4 as uuid } from "uuid";
+import axios from "axios";
+import {FinancialData} from "../@types"
 import "./App.css";
 
+const url = "http://localhost:4040"
+
 function App() {
-  const dataArray = [
-    {
-      name: "CAC40",
-      values: [10, 15, 47, 15, 89, 5],
-    },
-    { name: "NASDAQ", values: [14, 89, 20, 78, 8, 32] },
-    { name: "KOLLJ22", values: [] },
-  ];
+  const [dataArray, setDataArray] = useState<FinancialData[]>([])
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await axios.get(`${url}/api/v1/data`);
+      
+      setDataArray(response.data)
+    };
+    fetchData();
+  }, []);
+  
   const data = React.useMemo(
     () =>
       dataArray.map((el) => {
         return {
           label: el.name,
           data: el.values.map((it, index) => {
-            console.log("index", index);
             return { x: index, y: it };
           }),
         };
       }),
     []
   );
-  console.log("data", data);
   const axes = React.useMemo(
     () => [
       { primary: true, type: "linear", position: "bottom" },
@@ -51,11 +55,12 @@ function App() {
           dataArray.map((el, index) => (
             <>
               <div
+                key={uuid()}
                 style={{
                   width: "50px",
                   height: "5px",
                   background: index === 0 ? "#0099CC" : "#FF4433",
-                  margin: "5px"
+                  margin: "5px",
                 }}
               ></div>
               <p>{el.name}</p>
@@ -72,13 +77,13 @@ function App() {
           <tbody>
             <>
               {dataArray?.length &&
-                dataArray.map((el) => (
+                dataArray?.map((el) => (
                   <tr>
                     <td key={uuid()} className="array-section-td">
                       {el.name}
                     </td>
-                    {el.values &&
-                      el.values.map((item) => (
+                    {el?.values &&
+                      el?.values?.map((item) => (
                         <td key={uuid()} className="array-section-td">
                           {item}
                         </td>
